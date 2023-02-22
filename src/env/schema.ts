@@ -17,6 +17,7 @@ export const envSchema = z.object({
   CHAINBASE_API_KEY: z.string(),
   CHAINBASE_DATACLOUD_API_KEY: z.string(),
   CHAINBASE_ETH_MAINNET_KEY: z.string(),
+  DISCORD_WEBHOOK_URL: z.string(),
 });
 
 export const envParsed = envSchema.safeParse(process.env);

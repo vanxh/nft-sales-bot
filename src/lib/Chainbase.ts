@@ -1,6 +1,11 @@
 import { HTTP } from './HTTP';
 import { env } from '../env/schema';
-import { DataCloudQueryRes, GetTxRes, NftTransfer } from '../types';
+import {
+  DataCloudQueryRes,
+  GetNftMetadataRes,
+  GetTxRes,
+  NftTransfer,
+} from '../types';
 import { z } from 'zod';
 
 export class Chainbase {
@@ -63,6 +68,9 @@ export class Chainbase {
     return z.array(NftTransfer).parse(data.data.result);
   }
 
+  /**
+   * @param txHash Transaction hash of the transaction you want to get
+   */
   async getTxByHash(txHash: string) {
     const res = await this.http.send(
       'POST',
@@ -80,5 +88,16 @@ export class Chainbase {
     const data = GetTxRes.parse(res.data);
 
     return data.result;
+  }
+
+  async getNftMetadata(contractAddress: string, tokenId: string) {
+    const res = await this.http.send(
+      'GET',
+      `https://api.chainbase.online/v1/nft/metadata?chain_id=1&contract_address=${contractAddress}&token_id=${tokenId}`
+    );
+
+    const data = GetNftMetadataRes.parse(res.data);
+
+    return data.data;
   }
 }

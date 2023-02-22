@@ -54,3 +54,25 @@ export const GetTxRes = z.object({
     value: z.string(),
   }),
 });
+
+export const GetNftMetadataRes = z.object({
+  code: z.number(),
+  message: z.string(),
+  data: z.object({
+    contract_address: z.string(),
+    name: z.string(),
+    symbol: z.string(),
+    owner: z.string(),
+    token_id: z.string(),
+    erc_type: z.string(),
+    image_uri: z.string(),
+    mint_time: z.string(),
+    mint_transaction_hash: z.string(),
+    token_uri: z.string(),
+    metadata: z.object({
+      name: z.string(),
+      description: z.string(),
+    }),
+    traits: z.array(z.any()),
+  }),
+});

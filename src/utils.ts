@@ -1,4 +1,6 @@
 import { Alchemy, Network } from 'alchemy-sdk';
+import { default as axios } from 'axios';
+
 import { env } from './env/schema';
 
 export const debug = console.log;
@@ -26,4 +28,11 @@ export const getNftMetadata = async (
       image: data.contract.openSea?.imageUrl,
     },
   };
+};
+
+export const getETHPrice = async () => {
+  const { data } = await axios.get(
+    'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=USD&include_24hr_change=true'
+  );
+  return data.ethereum.usd as number;
 };

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import 'dotenv/config.js';
 import fs from 'fs';
 import { Colors, EmbedBuilder, WebhookClient, hyperlink } from 'discord.js';
@@ -10,7 +11,7 @@ import {
 } from 'alchemy-sdk';
 
 import { env } from './env/schema';
-import { alchemy, getNftMetadata } from './utils';
+import { alchemy, getNftMetadata, getETHPrice } from './utils';
 
 const webhook = new WebhookClient({
   url: env.DISCORD_WEBHOOK_URL,
@@ -50,6 +51,8 @@ export const checkForSales = async () => {
       (tokenId ?? erc721TokenId) as string
     );
 
+    const ethPrice = await getETHPrice();
+
     const embed = new EmbedBuilder()
       .setTitle(`${nft.name} has just been sold!`)
       .setURL(
@@ -69,8 +72,9 @@ export const checkForSales = async () => {
         },
         {
           name: 'Price',
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          value: `${Utils.formatEther(tx!.value)} ETH`,
+          value: `${Utils.formatEther(tx!.value)} ETH (${
+            ethPrice * parseFloat(Utils.formatEther(tx!.value))
+          } USD)`,
         },
         {
           name: 'From',

@@ -6,6 +6,7 @@ import { Colors, EmbedBuilder, WebhookClient } from 'discord.js';
 import { env } from './env/schema';
 
 import { Chainbase } from './lib';
+import { debug } from './utils';
 
 const webhook = new WebhookClient({
   url: env.DISCORD_WEBHOOK_URL,
@@ -14,7 +15,7 @@ const webhook = new WebhookClient({
 const CONTRACT_ADDRESS = '0x0000000005756b5a03e751bd0280e3a55bc05b6e';
 const chainbase = new Chainbase();
 
-(async () => {
+const checkForNewTransfers = async () => {
   const transfers = await chainbase.getTransfers(CONTRACT_ADDRESS);
 
   for (const transfer of transfers) {
@@ -58,4 +59,14 @@ const chainbase = new Chainbase();
       embeds: [embed],
     });
   }
+};
+
+(async () => {
+  setInterval(async () => {
+    try {
+      await checkForNewTransfers();
+    } catch (err) {
+      debug(err);
+    }
+  }, 1 * 60 * 60 * 1000);
 })();

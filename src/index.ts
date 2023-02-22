@@ -19,6 +19,7 @@ const webhook = new WebhookClient({
 const CONTRACT_ADDRESS = '0x0000000005756b5a03e751bd0280e3a55bc05b6e';
 const CHECK_EVERY_MINUTES = 1;
 let lastBlock = 0;
+let alreadySent: string[] = [];
 
 export const checkForSales = async () => {
   const response = await alchemy.core.getAssetTransfers({
@@ -38,11 +39,12 @@ export const checkForSales = async () => {
     erc721TokenId,
     blockNum,
   } of response.transfers) {
-    if ((!tokenId && !erc721TokenId) || !to) {
+    if ((!tokenId && !erc721TokenId) || !to || alreadySent.includes(hash)) {
       continue;
     }
 
     const tx = await alchemy.core.getTransaction(hash);
+
     const nft = await getNftMetadata(
       CONTRACT_ADDRESS,
       (tokenId ?? erc721TokenId) as string
@@ -85,11 +87,13 @@ export const checkForSales = async () => {
     });
 
     lastBlock = fromHex(blockNum);
+    alreadySent.push(hash);
     await fs.promises.writeFile(
       './cache.json',
       JSON.stringify(
         {
           lastBlock,
+          alreadySent,
         },
         null,
         4
@@ -105,6 +109,7 @@ export const checkForSales = async () => {
       JSON.stringify(
         {
           lastBlock,
+          alreadySent,
         },
         null,
         4
@@ -114,7 +119,8 @@ export const checkForSales = async () => {
     const cache = JSON.parse(
       await fs.promises.readFile('./cache.json', 'utf-8')
     );
-    lastBlock = cache.lastBlock;
+    lastBlock = cache.lastBlock ?? 0;
+    alreadySent = cache.alreadySent ?? [];
   }
 
   await checkForSales();

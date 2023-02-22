@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "lib": [
+      "esnext"
+    ],
+    "module": "commonjs",
+    "rootDir": "src",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "skipLibCheck": true
+  },
+  // "include": [
+  //   "**/*.ts",
+  //   "**/*.cjs",
+  //   "**/*.mjs"
+  // ],
+  // "exclude": [
+  //   "node_modules"
+  // ]
+}

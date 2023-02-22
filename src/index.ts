@@ -1,7 +1,7 @@
 import 'dotenv/config.js';
 import Web3 from 'web3';
 import BN from 'bignumber.js';
-import { Colors, EmbedBuilder, WebhookClient } from 'discord.js';
+import { Colors, EmbedBuilder, WebhookClient, hyperlink } from 'discord.js';
 
 import { env } from './env/schema';
 
@@ -47,11 +47,17 @@ const checkForNewTransfers = async () => {
         },
         {
           name: 'From',
-          value: transfer.from,
+          value: hyperlink(
+            transfer.from,
+            `https://etherscan.io/address/${transfer.from}`
+          ),
         },
         {
           name: 'To',
-          value: transfer.to,
+          value: hyperlink(
+            transfer.to,
+            `https://etherscan.io/address/${transfer.to}`
+          ),
         },
       ]);
 

@@ -1,78 +1,122 @@
 import 'dotenv/config.js';
-import Web3 from 'web3';
-import BN from 'bignumber.js';
+import fs from 'fs';
 import { Colors, EmbedBuilder, WebhookClient, hyperlink } from 'discord.js';
+import {
+  AssetTransfersCategory,
+  fromHex,
+  SortingOrder,
+  toHex,
+  Utils,
+} from 'alchemy-sdk';
 
 import { env } from './env/schema';
-
-import { Chainbase } from './lib';
-import { debug } from './utils';
+import { alchemy, getNftMetadata } from './utils';
 
 const webhook = new WebhookClient({
   url: env.DISCORD_WEBHOOK_URL,
 });
 
 const CONTRACT_ADDRESS = '0x0000000005756b5a03e751bd0280e3a55bc05b6e';
-const chainbase = new Chainbase();
+const CHECK_EVERY_MINUTES = 1;
+let lastBlock = 0;
 
-const checkForNewTransfers = async () => {
-  const transfers = await chainbase.getTransfers(CONTRACT_ADDRESS);
+export const checkForSales = async () => {
+  const response = await alchemy.core.getAssetTransfers({
+    fromBlock: toHex(lastBlock),
+    contractAddresses: [CONTRACT_ADDRESS],
+    category: [AssetTransfersCategory.ERC721],
+    excludeZeroValue: false,
+    order: SortingOrder.DESCENDING,
+    maxCount: 3,
+  });
 
-  for (const transfer of transfers) {
-    const tx = await chainbase.getTxByHash(transfer.transaction_hash);
-    const value = new BN(Web3.utils.fromWei(tx.value, 'ether')).toFixed();
-    const nft = await chainbase.getNftMetadata(
+  for (const {
+    from,
+    to,
+    hash,
+    tokenId,
+    erc721TokenId,
+    blockNum,
+  } of response.transfers) {
+    if ((!tokenId && !erc721TokenId) || !to) {
+      continue;
+    }
+
+    const tx = await alchemy.core.getTransaction(hash);
+    const nft = await getNftMetadata(
       CONTRACT_ADDRESS,
-      transfer.tokenId
+      (tokenId ?? erc721TokenId) as string
     );
 
     const embed = new EmbedBuilder()
-      .setTitle(`${nft.metadata.name} has just been sold!`)
-      .setURL(nft.token_uri)
+      .setTitle(`${nft.name} has just been sold!`)
+      .setURL(
+        `https://opensea.io/assets/ethereum/${CONTRACT_ADDRESS}/${nft.tokenId}`
+      )
       .setColor(Colors.Blue)
       .setTimestamp()
-      .setImage(nft.image_uri)
+      .setImage(nft.image)
       .setFooter({
         text: `Made by Vanxh`,
-        iconURL: nft.image_uri,
+        iconURL: nft.image,
       })
       .addFields([
         {
           name: 'Item',
-          value: nft.metadata.name,
+          value: nft.name,
         },
         {
           name: 'Price',
-          value: `${value} ETH`,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          value: `${Utils.formatEther(tx!.value)} ETH`,
         },
         {
           name: 'From',
-          value: hyperlink(
-            transfer.from,
-            `https://etherscan.io/address/${transfer.from}`
-          ),
+          value: hyperlink(from, `https://etherscan.io/address/${from}`),
         },
         {
           name: 'To',
-          value: hyperlink(
-            transfer.to,
-            `https://etherscan.io/address/${transfer.to}`
-          ),
+          value: hyperlink(to, `https://etherscan.io/address/${to}`),
         },
       ]);
 
     await webhook.send({
       embeds: [embed],
     });
+
+    lastBlock = fromHex(blockNum);
+    await fs.promises.writeFile(
+      './cache.json',
+      JSON.stringify(
+        {
+          lastBlock,
+        },
+        null,
+        4
+      )
+    );
   }
 };
 
 (async () => {
-  setInterval(async () => {
-    try {
-      await checkForNewTransfers();
-    } catch (err) {
-      debug(err);
-    }
-  }, 1 * 60 * 60 * 1000);
+  if (!fs.existsSync('./cache.json')) {
+    await fs.promises.writeFile(
+      './cache.json',
+      JSON.stringify(
+        {
+          lastBlock,
+        },
+        null,
+        4
+      )
+    );
+  } else {
+    const cache = JSON.parse(
+      await fs.promises.readFile('./cache.json', 'utf-8')
+    );
+    lastBlock = cache.lastBlock;
+  }
+
+  await checkForSales();
+  setInterval(checkForSales, CHECK_EVERY_MINUTES * 60 * 1000);
 })();

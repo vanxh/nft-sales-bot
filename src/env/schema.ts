@@ -14,9 +14,7 @@ export const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'test', 'production'])
     .default('development'),
-  CHAINBASE_API_KEY: z.string(),
-  CHAINBASE_DATACLOUD_API_KEY: z.string(),
-  CHAINBASE_ETH_MAINNET_KEY: z.string(),
+  ALCHEMY_API_KEY: z.string(),
   DISCORD_WEBHOOK_URL: z.string(),
 });
 

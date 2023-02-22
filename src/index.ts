@@ -23,6 +23,7 @@ let lastBlock = 0;
 let alreadySent: string[] = [];
 
 export const checkForSales = async () => {
+  // TODO: update to nft.getNFTSales in future
   const response = await alchemy.core.getAssetTransfers({
     fromBlock: toHex(lastBlock),
     contractAddresses: [CONTRACT_ADDRESS],

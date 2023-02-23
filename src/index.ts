@@ -2,13 +2,7 @@
 import 'dotenv/config.js';
 import fs from 'fs';
 import { Colors, EmbedBuilder, WebhookClient, hyperlink } from 'discord.js';
-import {
-  AssetTransfersCategory,
-  fromHex,
-  SortingOrder,
-  toHex,
-  Utils,
-} from 'alchemy-sdk';
+import { SortingOrder } from 'alchemy-sdk';
 
 import { env } from './env/schema';
 import { alchemy, getNftMetadata, getETHPrice } from './utils';
@@ -19,43 +13,39 @@ const webhook = new WebhookClient({
 
 const CONTRACT_ADDRESS = '0x0000000005756b5a03e751bd0280e3a55bc05b6e';
 const CHECK_EVERY_MINUTES = 1;
-let lastBlock = 0;
 let alreadySent: string[] = [];
 
 export const checkForSales = async () => {
-  // TODO: update to nft.getNFTSales in future
-  const response = await alchemy.core
-    .getAssetTransfers({
-      fromBlock: toHex(lastBlock),
-      contractAddresses: [CONTRACT_ADDRESS],
-      category: [AssetTransfersCategory.ERC721],
-      excludeZeroValue: false,
+  const response = await alchemy.nft
+    .getNftSales({
+      contractAddress: CONTRACT_ADDRESS,
+      limit: 3,
       order: SortingOrder.DESCENDING,
-      maxCount: 3,
     })
     .catch(() => null);
   if (!response) return;
 
   for (const {
-    from,
-    to,
-    hash,
+    buyerAddress,
+    sellerAddress,
+    transactionHash,
     tokenId,
-    erc721TokenId,
-    blockNum,
-  } of response.transfers) {
-    if ((!tokenId && !erc721TokenId) || !to || alreadySent.includes(hash)) {
+    sellerFee,
+    royaltyFee,
+    protocolFee,
+  } of response.nftSales) {
+    if (!tokenId || alreadySent.includes(transactionHash)) {
       continue;
     }
 
-    const tx = await alchemy.core.getTransaction(hash);
-
-    const nft = await getNftMetadata(
-      CONTRACT_ADDRESS,
-      (tokenId ?? erc721TokenId) as string
-    );
+    const nft = await getNftMetadata(CONTRACT_ADDRESS, tokenId as string);
 
     const ethPrice = await getETHPrice();
+    const ethValue =
+      parseInt(sellerFee.amount) / 10 ** 18 +
+      (protocolFee ? parseInt(protocolFee.amount) / 10 ** 18 : 0) +
+      (royaltyFee ? parseInt(royaltyFee.amount) / 10 ** 18 : 0);
+    const usdValue = ethPrice * ethValue;
 
     const embed = new EmbedBuilder()
       .setTitle(`${nft.name} has just been sold!`)
@@ -76,19 +66,21 @@ export const checkForSales = async () => {
         },
         {
           name: 'Price',
-          value: `${parseFloat(Utils.formatEther(tx!.value)).toFixed(
-            3
-          )} ETH ($${(
-            ethPrice * parseFloat(Utils.formatEther(tx!.value))
-          ).toFixed(2)} USD)`,
+          value: `${ethValue.toFixed(3)} ETH ($${usdValue.toFixed(2)} USD)`,
         },
         {
           name: 'From',
-          value: hyperlink(from, `https://etherscan.io/address/${from}`),
+          value: hyperlink(
+            sellerAddress,
+            `https://etherscan.io/address/${sellerAddress}`
+          ),
         },
         {
           name: 'To',
-          value: hyperlink(to, `https://etherscan.io/address/${to}`),
+          value: hyperlink(
+            buyerAddress,
+            `https://etherscan.io/address/${buyerAddress}`
+          ),
         },
       ]);
 
@@ -96,13 +88,11 @@ export const checkForSales = async () => {
       embeds: [embed],
     });
 
-    lastBlock = fromHex(blockNum);
-    alreadySent.push(hash);
+    alreadySent.push(transactionHash);
     await fs.promises.writeFile(
       './cache.json',
       JSON.stringify(
         {
-          lastBlock,
           alreadySent,
         },
         null,
@@ -118,7 +108,6 @@ export const checkForSales = async () => {
       './cache.json',
       JSON.stringify(
         {
-          lastBlock,
           alreadySent,
         },
         null,
@@ -129,9 +118,12 @@ export const checkForSales = async () => {
     const cache = JSON.parse(
       await fs.promises.readFile('./cache.json', 'utf-8')
     );
-    lastBlock = cache.lastBlock ?? 0;
     alreadySent = cache.alreadySent ?? [];
   }
+
+  console.log(
+    `Listening for sales on ${CONTRACT_ADDRESS} every ${CHECK_EVERY_MINUTES} minute(s)...`
+  );
 
   await checkForSales();
   setInterval(checkForSales, CHECK_EVERY_MINUTES * 60 * 1000);

@@ -24,14 +24,17 @@ let alreadySent: string[] = [];
 
 export const checkForSales = async () => {
   // TODO: update to nft.getNFTSales in future
-  const response = await alchemy.core.getAssetTransfers({
-    fromBlock: toHex(lastBlock),
-    contractAddresses: [CONTRACT_ADDRESS],
-    category: [AssetTransfersCategory.ERC721],
-    excludeZeroValue: false,
-    order: SortingOrder.DESCENDING,
-    maxCount: 3,
-  });
+  const response = await alchemy.core
+    .getAssetTransfers({
+      fromBlock: toHex(lastBlock),
+      contractAddresses: [CONTRACT_ADDRESS],
+      category: [AssetTransfersCategory.ERC721],
+      excludeZeroValue: false,
+      order: SortingOrder.DESCENDING,
+      maxCount: 3,
+    })
+    .catch(() => null);
+  if (!response) return;
 
   for (const {
     from,
@@ -73,9 +76,11 @@ export const checkForSales = async () => {
         },
         {
           name: 'Price',
-          value: `${Utils.formatEther(tx!.value)} ETH (${
+          value: `${parseFloat(Utils.formatEther(tx!.value)).toFixed(
+            3
+          )} ETH ($${(
             ethPrice * parseFloat(Utils.formatEther(tx!.value))
-          } USD)`,
+          ).toFixed(2)} USD)`,
         },
         {
           name: 'From',

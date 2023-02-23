@@ -2,7 +2,7 @@
 import 'dotenv/config.js';
 import fs from 'fs';
 import { Colors, EmbedBuilder, WebhookClient, hyperlink } from 'discord.js';
-import { SortingOrder } from 'alchemy-sdk';
+import { NftSaleMarketplace, SortingOrder } from 'alchemy-sdk';
 
 import { env } from './env/schema';
 import { alchemy, getNftMetadata, getETHPrice } from './utils';
@@ -21,6 +21,7 @@ export const checkForSales = async () => {
       contractAddress: CONTRACT_ADDRESS,
       limit: 3,
       order: SortingOrder.DESCENDING,
+      marketplace: NftSaleMarketplace.SEAPORT,
     })
     .catch(() => null);
   if (!response) return;

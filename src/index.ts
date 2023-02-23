@@ -83,6 +83,10 @@ export const checkForSales = async () => {
             `https://etherscan.io/address/${buyerAddress}`
           ),
         },
+        {
+          name: 'Sale on',
+          value: `OpenSea`,
+        },
       ]);
 
     await webhook.send({

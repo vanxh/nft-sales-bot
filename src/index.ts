@@ -1,7 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import 'dotenv/config.js';
 import fs from 'fs';
-import { Colors, EmbedBuilder, WebhookClient, hyperlink } from 'discord.js';
+import {
+  Colors,
+  EmbedBuilder,
+  WebhookClient,
+  bold,
+  hyperlink,
+  formatEmoji,
+} from 'discord.js';
 import { NftSaleMarketplace, SortingOrder } from 'alchemy-sdk';
 
 import { env } from './env/schema';
@@ -59,35 +66,19 @@ export const checkForSales = async () => {
       .setFooter({
         text: `Made by Vanxh`,
         iconURL: nft.image,
-      })
-      .addFields([
-        {
-          name: 'Item',
-          value: nft.name,
-        },
-        {
-          name: 'Price',
-          value: `${ethValue.toFixed(3)} ETH ($${usdValue.toFixed(2)} USD)`,
-        },
-        {
-          name: 'From',
-          value: hyperlink(
-            sellerAddress,
-            `https://etherscan.io/address/${sellerAddress}`
-          ),
-        },
-        {
-          name: 'To',
-          value: hyperlink(
-            buyerAddress,
-            `https://etherscan.io/address/${buyerAddress}`
-          ),
-        },
-        {
-          name: 'Sale on',
-          value: `OpenSea`,
-        },
-      ]);
+      }).setDescription(`${bold('Item')}
+${nft.name}
+
+${bold('Price')}
+${ethValue.toFixed(3)} ETH ($${usdValue.toFixed(2)} USD)
+
+${bold('From')}
+${hyperlink(sellerAddress, `https://etherscan.io/address/${sellerAddress}`)}
+
+${bold('To')}
+${hyperlink(buyerAddress, `https://etherscan.io/address/${buyerAddress}`)}
+
+${bold('Sold On')} ${formatEmoji('1078371921982402592')}`);
 
     await webhook.send({
       embeds: [embed],

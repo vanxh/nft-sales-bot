@@ -33,6 +33,13 @@ export const checkForSales = async () => {
     .catch(() => null);
   if (!response) return;
 
+  console.log(
+    `Found ${
+      response.nftSales.filter(s => !alreadySent.includes(s.transactionHash))
+        .length
+    } new sales...`
+  );
+
   for (const {
     buyerAddress,
     sellerAddress,

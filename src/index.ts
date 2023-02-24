@@ -34,10 +34,10 @@ export const checkForSales = async () => {
   if (!response) return;
 
   console.log(
-    `Found ${
+    `[${new Date().toLocaleTimeString()}] Found ${
       response.nftSales.filter(s => !alreadySent.includes(s.transactionHash))
         .length
-    } new sales...`
+    } new sales.`
   );
 
   for (const {

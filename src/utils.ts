@@ -11,6 +11,15 @@ const config = {
 };
 export const alchemy = new Alchemy(config);
 
+export const truncateAddress = (address: string) => {
+  if (address.length < 10) {
+    throw new Error('Invalid Ethereum address.');
+  }
+  const prefix = address.slice(0, 6);
+  const suffix = address.slice(-4);
+  return `${prefix}...${suffix}`;
+};
+
 export const getNftMetadata = async (
   contractAddress: string,
   tokenId: string

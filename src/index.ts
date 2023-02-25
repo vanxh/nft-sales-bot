@@ -12,7 +12,7 @@ import {
 import { NftSaleMarketplace, SortingOrder } from 'alchemy-sdk';
 
 import { env } from './env/schema';
-import { alchemy, getNftMetadata, getETHPrice } from './utils';
+import { alchemy, getNftMetadata, getETHPrice, truncateAddress } from './utils';
 
 const webhook = new WebhookClient({
   url: env.DISCORD_WEBHOOK_URL,
@@ -80,12 +80,21 @@ ${bold('Price')}
 ${ethValue.toFixed(3)} ETH ($${usdValue.toFixed(2)} USD)
 
 ${bold('From')}
-${hyperlink(sellerAddress, `https://etherscan.io/address/${sellerAddress}`)}
+${hyperlink(
+  truncateAddress(sellerAddress),
+  `https://etherscan.io/address/${sellerAddress}`
+)}
 
 ${bold('To')}
-${hyperlink(buyerAddress, `https://etherscan.io/address/${buyerAddress}`)}
+${hyperlink(
+  truncateAddress(buyerAddress),
+  `https://etherscan.io/address/${buyerAddress}`
+)}
 
-${bold('Sold On')} ${formatEmoji('1078371921982402592')}`);
+${bold('Sold On')} ${formatEmoji('1078371921982402592')} ${hyperlink(
+      'Opensea',
+      'https://opensea.io'
+    )}`);
 
     await webhook.send({
       embeds: [embed],

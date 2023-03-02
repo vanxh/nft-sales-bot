@@ -16,6 +16,7 @@ export const envSchema = z.object({
     .default('development'),
   ALCHEMY_API_KEY: z.string(),
   DISCORD_WEBHOOK_URL: z.string(),
+  ETHERSCAN_API_KEY: z.string(),
 });
 
 export const envParsed = envSchema.safeParse(process.env);

@@ -67,13 +67,13 @@ const CONTRACT_ADDRESS = '0x6339e5E072086621540D0362C4e3Cea0d643E114';
               }).setDescription(`
   ${bold('From')}
   ${hyperlink(
-    tx.fromAddrName ?? tx.fromAddr ? truncateAddress(tx.fromAddr!) : 'N / A',
+    tx.fromAddrName ?? (tx.fromAddr ? truncateAddress(tx.fromAddr!) : 'N / A'),
     `https://etherscan.io/address/${tx.fromAddr}`
   )}
 
   ${bold('To')}
   ${hyperlink(
-    tx.toAddrName ?? tx.toAddr ? truncateAddress(tx.toAddr!) : 'N / A',
+    tx.toAddrName ?? (tx.toAddr ? truncateAddress(tx.toAddr!) : 'N / A'),
     `https://etherscan.io/address/${tx.fromAddr}`
   )}
 
@@ -105,13 +105,13 @@ const CONTRACT_ADDRESS = '0x6339e5E072086621540D0362C4e3Cea0d643E114';
             }).setDescription(`
   ${bold('From')}
   ${hyperlink(
-    tx.fromAddrName ?? tx.fromAddr ? truncateAddress(tx.fromAddr!) : 'N / A',
+    tx.fromAddrName ?? (tx.fromAddr ? truncateAddress(tx.fromAddr!) : 'N / A'),
     `https://etherscan.io/address/${tx.fromAddr}`
   )}
 
   ${bold('To')}
   ${hyperlink(
-    tx.toAddrName ?? tx.toAddr ? truncateAddress(tx.toAddr!) : 'N / A',
+    tx.toAddrName ?? (tx.toAddr ? truncateAddress(tx.toAddr!) : 'N / A'),
     `https://etherscan.io/address/${tx.fromAddr}`
   )}
 

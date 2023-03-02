@@ -1,142 +1,87 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import 'dotenv/config.js';
-import fs from 'fs';
 import {
   Colors,
   EmbedBuilder,
   WebhookClient,
   bold,
   hyperlink,
-  formatEmoji,
 } from 'discord.js';
-import { NftSaleMarketplace, SortingOrder } from 'alchemy-sdk';
+import { Auth, ENFT } from 'enft';
 
-import { env } from './env/schema';
-import { alchemy, getNftMetadata, getETHPrice, truncateAddress } from './utils';
+import { env } from './env/schema.js';
+import { getETHPrice, truncateAddress, formatPrice } from './utils.js';
 
 const webhook = new WebhookClient({
   url: env.DISCORD_WEBHOOK_URL,
 });
 
-const CONTRACT_ADDRESS = '0x0000000005756b5a03e751bd0280e3a55bc05b6e';
-const CHECK_EVERY_MINUTES = 1;
-let alreadySent: string[] = [];
+const auth = new Auth({
+  alchemy: {
+    apiKey: env.ALCHEMY_API_KEY,
+  },
+});
 
-export const checkForSales = async () => {
-  const response = await alchemy.nft
-    .getNftSales({
+const enft = new ENFT(auth);
+
+const CONTRACT_ADDRESS = '0xED5AF388653567Af2F388E6224dC7C4b3241C544';
+
+(async () => {
+  enft.onItemSold(
+    {
       contractAddress: CONTRACT_ADDRESS,
-      limit: 3,
-      order: SortingOrder.DESCENDING,
-      marketplace: NftSaleMarketplace.SEAPORT,
-    })
-    .catch(() => null);
-  if (!response) return;
+    },
+    async tx => {
+      console.log(tx);
+      const ethPrice = await getETHPrice();
 
-  console.log(
-    `[${new Date().toLocaleTimeString()}] Found ${
-      response.nftSales.filter(s => !alreadySent.includes(s.transactionHash))
-        .length
-    } new sales.`
-  );
+      const tokenId = Object.keys(tx.tokens)[0];
+      const tokenData = tx.tokens[tokenId];
+      const price = formatPrice(tx.totalPrice);
 
-  for (const {
-    buyerAddress,
-    sellerAddress,
-    transactionHash,
-    tokenId,
-    sellerFee,
-    royaltyFee,
-    protocolFee,
-  } of response.nftSales) {
-    if (!tokenId || alreadySent.includes(transactionHash)) {
-      continue;
-    }
-
-    const nft = await getNftMetadata(CONTRACT_ADDRESS, tokenId as string);
-
-    const ethPrice = await getETHPrice();
-    const ethValue =
-      parseInt(sellerFee.amount) / 10 ** 18 +
-      (protocolFee ? parseInt(protocolFee.amount) / 10 ** 18 : 0) +
-      (royaltyFee ? parseInt(royaltyFee.amount) / 10 ** 18 : 0);
-    const usdValue = ethPrice * ethValue;
-
-    const embed = new EmbedBuilder()
-      .setTitle(`${nft.name} has just been sold!`)
-      .setURL(
-        `https://opensea.io/assets/ethereum/${CONTRACT_ADDRESS}/${nft.tokenId}`
-      )
-      .setColor(Colors.Blue)
-      .setTimestamp()
-      .setImage(nft.image)
-      .setFooter({
-        text: `Made by Vanxh`,
-        iconURL: nft.image,
-      }).setDescription(`${bold('Item')}
-${nft.name}
+      const embed = new EmbedBuilder()
+        .setTitle(
+          `${
+            tx.contractData.name || tx.contractData.symbol || tokenData.name
+          } has just been sold!`
+        )
+        .setURL(
+          `https://opensea.io/assets/ethereum/${CONTRACT_ADDRESS}/${tokenId}`
+        )
+        .setColor(Colors.Blue)
+        .setTimestamp()
+        .setImage(tokenData.image)
+        .setFooter({
+          text: `${tx.interactedMarket.displayName} | Made by Vanxh`,
+          iconURL: tx.interactedMarket.iconURL,
+        }).setDescription(`${bold('Item')}
+${tx.contractData.name || tx.contractData.symbol || tokenData.name}
 
 ${bold('Price')}
-${ethValue.toFixed(3)} ETH ($${usdValue.toFixed(2)} USD)
+${price} ${tx.currency.name} ($${(
+        tx.totalPrice * ethPrice
+      ).toLocaleString()} USD)
 
 ${bold('From')}
 ${hyperlink(
-  truncateAddress(sellerAddress),
-  `https://etherscan.io/address/${sellerAddress}`
+  tx.fromAddrName ?? tx.fromAddr ? truncateAddress(tx.fromAddr!) : 'N / A',
+  `https://etherscan.io/address/${tx.fromAddr}`
 )}
 
 ${bold('To')}
 ${hyperlink(
-  truncateAddress(buyerAddress),
-  `https://etherscan.io/address/${buyerAddress}`
+  tx.toAddrName ?? tx.toAddr ? truncateAddress(tx.toAddr!) : 'N / A',
+  `https://etherscan.io/address/${tx.fromAddr}`
 )}
 
-${bold('Sold On')} ${formatEmoji('1078371921982402592')} ${hyperlink(
-      'Opensea',
-      'https://opensea.io'
-    )}`);
+${bold('Sold On')} ${hyperlink(
+        tx.interactedMarket.displayName,
+        tx.interactedMarket.site
+      )}`);
 
-    await webhook.send({
-      embeds: [embed],
-    });
-
-    alreadySent.push(transactionHash);
-    await fs.promises.writeFile(
-      './cache.json',
-      JSON.stringify(
-        {
-          alreadySent,
-        },
-        null,
-        4
-      )
-    );
-  }
-};
-
-(async () => {
-  if (!fs.existsSync('./cache.json')) {
-    await fs.promises.writeFile(
-      './cache.json',
-      JSON.stringify(
-        {
-          alreadySent,
-        },
-        null,
-        4
-      )
-    );
-  } else {
-    const cache = JSON.parse(
-      await fs.promises.readFile('./cache.json', 'utf-8')
-    );
-    alreadySent = cache.alreadySent ?? [];
-  }
-
-  console.log(
-    `Listening for sales on ${CONTRACT_ADDRESS} every ${CHECK_EVERY_MINUTES} minute(s)...`
+      await webhook.send({
+        embeds: [embed],
+      });
+    }
   );
-
-  await checkForSales();
-  setInterval(checkForSales, CHECK_EVERY_MINUTES * 60 * 1000);
 })();

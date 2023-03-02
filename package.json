@@ -5,6 +5,7 @@
   "repository": "git@github.com:vanxh/nft-sales-bot.git",
   "author": "vanxh",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
@@ -35,6 +36,7 @@
     "axios": "^1.3.3",
     "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
+    "enft": "^1.0.6",
     "zod": "^3.20.6"
   }
 }

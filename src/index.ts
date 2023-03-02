@@ -46,14 +46,8 @@ const CONTRACT_ADDRESS = '0x6339e5E072086621540D0362C4e3Cea0d643E114';
             const embed = new EmbedBuilder()
               .setTitle(
                 `${
-                  tokenData.name ||
-                  tx.contractData.name ||
-                  tx.contractData.symbol
-                } has just been sold for ${currentMarket.price.value} ${
-                  currentMarket.price.currency.name
-                } ($${(
-                  parseFloat(currentMarket.price.value) * ethPrice
-                ).toFixed(2)} USD)!`
+                  tx.contractData.name || tx.contractData.symbol
+                } has just been sold!`
               )
               .setURL(
                 `https://opensea.io/assets/ethereum/${CONTRACT_ADDRESS}/${tokenId}`
@@ -64,7 +58,14 @@ const CONTRACT_ADDRESS = '0x6339e5E072086621540D0362C4e3Cea0d643E114';
               .setFooter({
                 text: `Made by Vanxh`,
                 iconURL: tokenData.image,
-              }).setDescription(`
+              }).setDescription(`${
+              tokenData.name || tx.contractData.name || tx.contractData.symbol
+            } has just been sold for ${currentMarket.price.value} ${
+              currentMarket.price.currency.name
+            } ($${(parseFloat(currentMarket.price.value) * ethPrice).toFixed(
+              2
+            )} USD)!
+
   ${bold('From')}
   ${hyperlink(
     tx.fromAddrName ?? (tx.fromAddr ? truncateAddress(tx.fromAddr!) : 'N / A'),
@@ -88,10 +89,8 @@ const CONTRACT_ADDRESS = '0x6339e5E072086621540D0362C4e3Cea0d643E114';
           const embed = new EmbedBuilder()
             .setTitle(
               `${
-                tokenData.name || tx.contractData.name || tx.contractData.symbol
-              } has just been sold for ${formatPrice(tx.totalPrice)} ${
-                tx.currency.name
-              } ($${(tx.totalPrice * ethPrice).toFixed(2)} USD)!`
+                tx.contractData.name || tx.contractData.symbol
+              } has just been sold!`
             )
             .setURL(
               `https://opensea.io/assets/ethereum/${CONTRACT_ADDRESS}/${tokenId}`
@@ -102,7 +101,12 @@ const CONTRACT_ADDRESS = '0x6339e5E072086621540D0362C4e3Cea0d643E114';
             .setFooter({
               text: `Made by Vanxh`,
               iconURL: tokenData.image,
-            }).setDescription(`
+            }).setDescription(`${
+            tokenData.name || tx.contractData.name || tx.contractData.symbol
+          } has just been sold for ${formatPrice(tx.totalPrice)} ${
+            tx.currency.name
+          } ($${(tx.totalPrice * ethPrice).toFixed(2)} USD)!
+
   ${bold('From')}
   ${hyperlink(
     tx.fromAddrName ?? (tx.fromAddr ? truncateAddress(tx.fromAddr!) : 'N / A'),

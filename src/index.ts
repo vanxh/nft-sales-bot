@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import 'dotenv/config.js';
-import { Auth, ENFT } from 'enft';
+import { Auth, ENFT, MarketName } from 'enft';
 
 import { env } from './env/schema.js';
 import { formatPrice, getETHPrice, truncateAddress } from './utils.js';
@@ -25,6 +25,21 @@ const webhook = new WebhookClient({
 });
 
 const CONTRACT_ADDRESS = '0x6339e5E072086621540D0362C4e3Cea0d643E114';
+
+const emojis: {
+  [key in MarketName]?: string;
+} = {
+  opensea: '862443378461638697',
+  blur: undefined,
+  gem: undefined,
+  blurswap: undefined,
+  genie: undefined,
+  looksrare: undefined,
+  nfttrader: undefined,
+  sudoswap: undefined,
+  x2y2: undefined,
+  unknown: undefined,
+};
 
 (async () => {
   enft.onItemSold(
@@ -79,7 +94,11 @@ const CONTRACT_ADDRESS = '0x6339e5E072086621540D0362C4e3Cea0d643E114';
   )}
 
   ${bold('Sold On')}
-  ${hyperlink(currentMarket.market.displayName, currentMarket.market.site)}`);
+  ${
+    emojis[currentMarket.market.name]
+      ? ` ${emojis[currentMarket.market.name]}`
+      : ''
+  }${hyperlink(currentMarket.market.displayName, currentMarket.market.site)}`);
 
             await webhook.send({
               embeds: [embed],
@@ -120,7 +139,11 @@ const CONTRACT_ADDRESS = '0x6339e5E072086621540D0362C4e3Cea0d643E114';
   )}
 
   ${bold('Sold On')}
-  ${hyperlink(tx.interactedMarket.displayName, tx.interactedMarket.site)}`);
+  ${
+    emojis[tx.interactedMarket.name]
+      ? ` ${emojis[tx.interactedMarket.name]}`
+      : ''
+  }${hyperlink(tx.interactedMarket.displayName, tx.interactedMarket.site)}`);
 
           await webhook.send({
             embeds: [embed],

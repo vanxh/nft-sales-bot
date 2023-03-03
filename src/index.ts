@@ -5,6 +5,7 @@ import { Auth, ENFT, MarketName } from 'enft';
 import { env } from './env/schema.js';
 import { formatPrice, getETHPrice, truncateAddress } from './utils.js';
 import {
+  ColorResolvable,
   Colors,
   EmbedBuilder,
   WebhookClient,
@@ -41,6 +42,21 @@ const emojis: {
   unknown: undefined,
 };
 
+const colors: {
+  [key in MarketName]: ColorResolvable;
+} = {
+  opensea: '#2181E2',
+  blur: '#FF6E26',
+  gem: '#E77D88',
+  blurswap: '#FF6E26',
+  genie: '#1465FF',
+  looksrare: '#0CE566',
+  nfttrader: '#DBFF00',
+  sudoswap: '#B9B9FF',
+  x2y2: '#5739CB',
+  unknown: Colors.Blue,
+};
+
 (async () => {
   enft.onItemSold(
     {
@@ -67,7 +83,7 @@ const emojis: {
               .setURL(
                 `https://opensea.io/assets/ethereum/${CONTRACT_ADDRESS}/${tokenId}`
               )
-              .setColor(Colors.Blue)
+              .setColor(colors[currentMarket.market.name])
               .setTimestamp()
               .setImage(tokenData.image)
               .setFooter({
@@ -114,7 +130,7 @@ const emojis: {
             .setURL(
               `https://opensea.io/assets/ethereum/${CONTRACT_ADDRESS}/${tokenId}`
             )
-            .setColor(Colors.Blue)
+            .setColor(colors[tx.interactedMarket.name])
             .setTimestamp()
             .setImage(tokenData.image)
             .setFooter({

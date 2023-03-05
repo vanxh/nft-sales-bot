@@ -1126,10 +1126,10 @@ end-of-stream@^1.1.0, end-of-stream@^1.4.1:
   dependencies:
     once "^1.4.0"
 
-enft@^1.0.6:
-  version "1.0.6"
-  resolved "https://registry.yarnpkg.com/enft/-/enft-1.0.6.tgz#a24553a2dc68185c371ba9ca80e88867966d9237"
-  integrity sha512-3QBOLmNRW1tDib/CyNPLT1/tU99WYjm6BETmqiOYtamMxpbXcDliO8xpXcE19w/n9TXdfEyzVdWo356iaadpSg==
+enft@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/enft/-/enft-1.1.0.tgz#75f37c0991e77a71ee4ab956ab78e6695bbc30b5"
+  integrity sha512-QzgWYvq91qzxc5c4R4nQFC9EnWt5q8WjFVn3+VWSJoeWxw/rE3wfvNbSUH//5d5ZL37Gl2jGuy2zcwipfS+zVw==
   dependencies:
     async-retry "^1.3.3"
     axios "^1.3.3"

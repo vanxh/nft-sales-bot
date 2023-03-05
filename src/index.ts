@@ -10,6 +10,7 @@ import {
   EmbedBuilder,
   WebhookClient,
   bold,
+  formatEmoji,
   hyperlink,
 } from 'discord.js';
 
@@ -112,7 +113,7 @@ const colors: {
   ${bold('Sold On')}
   ${
     emojis[currentMarket.market.name]
-      ? ` ${emojis[currentMarket.market.name]}`
+      ? ` ${formatEmoji(emojis[currentMarket.market.name]!)}`
       : ''
   }${hyperlink(currentMarket.market.displayName, currentMarket.market.site)}`);
 
@@ -157,7 +158,7 @@ const colors: {
   ${bold('Sold On')}
   ${
     emojis[tx.interactedMarket.name]
-      ? ` ${emojis[tx.interactedMarket.name]}`
+      ? ` ${formatEmoji(emojis[tx.interactedMarket.name]!)})`
       : ''
   }${hyperlink(tx.interactedMarket.displayName, tx.interactedMarket.site)}`);
 
